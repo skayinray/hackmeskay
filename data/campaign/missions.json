@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "missions": [
+    {
+      "id": 1,
+      "title": "След в скрытом логе",
+      "brief": "В архиве старого терминала спрятан пароль. Найди его в скрытом логе и открой сессию.",
+      "reward": 50,
+      "objectives": [
+        {"id": "ls-a", "text": "осмотреть каталог: ls -a", "match": "ls -a"},
+        {"id": "cat-log", "text": "прочитать auth.log: cat auth.log", "match": "cat auth.log"},
+        {"id": "connect", "text": "подключиться: connect node-01", "match": "connect node-01"}
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Первый контакт",
+      "brief": "Виртуальная сеть mesh проснулась. Проведи разведку и установи соединение с шлюзом.",
+      "reward": 70,
+      "objectives": [
+        {"id": "scan", "text": "net-scan", "match": "net-scan"},
+        {"id": "connect", "text": "connect mail-gw", "match": "connect mail-gw"}
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Слабый ключ",
+      "brief": "Узел node-02 использует словарный пароль. Подбери его и закрепись в системе.",
+      "reward": 90,
+      "objectives": [
+        {"id": "scan", "text": "net-scan", "match": "net-scan"},
+        {"id": "hack", "text": "взломать узел: hack node-02", "match": "hack node-02"}
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Туннель через рой",
+      "brief": "Прямой маршрут заблокирован. Подними прокси и выйди на внутренний сегмент.",
+      "reward": 110,
+      "objectives": [
+        {"id": "proxy", "text": "поднять туннель: proxy", "match": "proxy"},
+        {"id": "connect", "text": "connect node-03", "match": "connect node-03"},
+        {"id": "hack", "text": "hack node-03", "match": "hack node-03"}
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Перехват и обход файрвола",
+      "brief": "Перехвати трафик шлюза, извлеки токен и обойди файрвол по легитимному маршруту.",
+      "reward": 150,
+      "objectives": [
+        {"id": "sniff", "text": "перехватить трафик: sniff", "match": "sniff"},
+        {"id": "bypass", "text": "обойти файрвол: firewall --bypass FW-BYPASS-77", "match": "firewall --bypass"},
+        {"id": "connect", "text": "connect firewall-01", "match": "connect firewall-01"}
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Призрачные процессы",
+      "brief": "На узле работает чужой демон. Найди его и останови перед взломом.",
+      "reward": 170,
+      "objectives": [
+        {"id": "connect", "text": "connect node-04", "match": "connect node-04"},
+        {"id": "hack", "text": "hack node-04", "match": "hack node-04"}
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Зашифрованное хранилище",
+      "brief": "Ключ спрятан в логах. Расшифруй vault и извлеки карту сети бота.",
+      "reward": 200,
+      "objectives": [
+        {"id": "cat", "text": "найти ключ: cat auth.log", "match": "cat auth.log"},
+        {"id": "decrypt", "text": "decrypt vault.enc", "match": "decrypt vault.enc"}
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Узел противника",
+      "brief": "Бот постил узел-приманку. Проникни внутрь и замени его ключ.",
+      "reward": 230,
+      "objectives": [
+        {"id": "scan", "text": "net-scan", "match": "net-scan"},
+        {"id": "connect", "text": "connect honeypot-07", "match": "connect honeypot-07"},
+        {"id": "hack", "text": "hack honeypot-07", "match": "hack honeypot-07"}
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Ловушка и след",
+      "brief": "Обнаружь ханипот и замести следы трассировкой, чтобы выйти на центр управления.",
+      "reward": 260,
+      "objectives": [
+        {"id": "sniff", "text": "sniff", "match": "sniff"},
+        {"id": "connect", "text": "connect c2-core", "match": "connect c2-core"},
+        {"id": "hack", "text": "hack c2-core", "match": "hack c2-core"}
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Скоординированная атака на рой",
+      "brief": "Финальная миссия. Синхронизируй 64 узла и уничтожь сеть ботов одним ударом.",
+      "reward": 500,
+      "objectives": [
+        {"id": "scan", "text": "net-scan", "match": "net-scan"},
+        {"id": "coordinate", "text": "botnet --coordinate", "match": "botnet --coordinate"},
+        {"id": "swarm", "text": "hack --swarm", "match": "hack --swarm"}
+      ]
+    }
+  ]
+}

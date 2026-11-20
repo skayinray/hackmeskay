@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=hackmeskay
+Comment=Терминальная хакерская MMO
+Exec=hackmeskay
+Icon=hackmeskay
+Terminal=true
+Categories=Game;RolePlaying;
+StartupNotify=false

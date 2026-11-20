@@ -1,0 +1,10 @@
+{
+  "name": "example_mod",
+  "version": "0.1.0",
+  "description": "Демо: добавляет команду ping",
+  "author": "hackmeskay",
+  "entrypoint": "main.py",
+  "api_version": "1",
+  "commands": ["ping"],
+  "enabled_by_default": true
+}

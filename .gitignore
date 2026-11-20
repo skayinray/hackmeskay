@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual envs / tooling
+.venv/
+venv/
+.env
+
+# Build outputs/intermediates (keep source build scripts and assets)
+build-win/
+build/AppDir/
+build/hackmeskay/
+dist/
+dist-win/
+tools/
+*.AppImage
+*.exe
+
+# Runtime / user data (created by app)
+saves/
+config/
+updates/
+mods/mods.json
+history.txt
+
+# Logs / temp
+*.log
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

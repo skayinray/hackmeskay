@@ -1,0 +1,5 @@
+rich>=13.7
+prompt_toolkit>=3.0.47
+aiohttp>=3.9
+cryptography>=42.0
+colorama>=0.4.6; sys_platform == "win32"
