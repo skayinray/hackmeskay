@@ -15,8 +15,8 @@ export PYTHONPATH=src            # Windows: $env:PYTHONPATH="src"
 python -m hackmeskay
 ```
 
-Set `language` to `en` in `config/settings.json` to use the English wiki pages.
-The default is `ru`. Russian pages remain available as a fallback.
+The default wiki language is `en`. Set `language` to `ru` in
+`config/settings.json` to switch back to the original Russian pages.
 
 ## Commands
 

@@ -18,7 +18,7 @@ class Settings:
     tick_rate: int = 20
     auto_check_updates: bool = True
     update_url: str = DEFAULT_UPDATE_URL
-    language: str = "ru"
+    language: str = "en"
 
     @classmethod
     def load(cls) -> "Settings":

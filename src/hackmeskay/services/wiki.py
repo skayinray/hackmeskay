@@ -40,7 +40,7 @@ EN_ALIASES = {
 
 
 class WikiService:
-    def __init__(self, wiki_dir: Path | None = None, language: str = "ru") -> None:
+    def __init__(self, wiki_dir: Path | None = None, language: str = "en") -> None:
         self.wiki_dir = wiki_dir or (DATA_DIR / "wiki")
         self.language = "en" if language.lower().startswith("en") else "ru"
         self._cache: dict[str, str] | None = None
