@@ -8,7 +8,7 @@ from .atomic import read_json, write_json_atomic
 from .paths import CONFIG_DIR
 
 DEFAULT_UPDATE_URL = (
-    "https://raw.githubusercontent.com/skayinray/hackmeskay/main/deploy/update.json"
+    "https://github.com/skayinray/hackmeskay/releases/latest/download/update.json"
 )
 
 

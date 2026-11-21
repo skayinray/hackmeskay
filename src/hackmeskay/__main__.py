@@ -34,7 +34,7 @@ def build_engine() -> Engine:
     state = StateStore()
     mods = ModManager(registry=registry, bus=bus, settings=settings.value.as_dict())
     updater = UpdateManager(settings.value.update_url, settings)
-    wiki = WikiService()
+    wiki = WikiService(language=settings.value.language)
     network = NetworkManager(load_or_create_identity())
     empire = EmpireState()
 

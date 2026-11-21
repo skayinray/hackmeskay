@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 import sys
+import sysconfig
 from pathlib import Path
 
 APP_NAME = "hackmeskay"
@@ -77,8 +78,9 @@ def _find_data_dir() -> Path:
     here = Path(__file__).resolve()
     candidates.extend(
         [
-            here.parents[3] / "data",  # src/hackmeskay/core -> корень проекта
-            here.parents[1] / "data",  # установленный пакет
+            here.parents[3] / "data",  # src/hackmeskay/core -> repository root
+            here.parents[1] / "data",  # package directory data
+            Path(sysconfig.get_paths()["data"]) / "share" / APP_NAME / "data",
             Path.cwd() / "data",
         ]
     )
@@ -107,7 +109,7 @@ def ensure_layout() -> None:
     if not settings.exists():
         settings.write_text(
             '{"ascii_only": false, "tick_rate": 20, "auto_check_updates": true, '
-            '"update_url": "https://raw.githubusercontent.com/skayinray/hackmeskay/main/deploy/update.json"}\n',
+            '"update_url": "https://github.com/skayinray/hackmeskay/releases/latest/download/update.json"}\n',
             encoding="utf-8",
         )
 

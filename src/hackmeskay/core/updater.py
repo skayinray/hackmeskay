@@ -1,23 +1,24 @@
-"""Безопасная система обновлений.
+"""Update checks and installation with release signature verification.
 
-Гарантии:
-  1. Манифест обновления проверяется по схеме; версия сравнивается семантически.
-  2. Бинарник качается в *.part с потоковым SHA-256 и проверкой размера.
-  3. Целевой путь проверяется: запрещено писать в saves/, config/, mods/.
-  4. ZIP-распаковка защищена от path traversal и тоже не трогает protected-диры.
-  5. Перед заменой делается backup; при ошибке — rollback.
-  6. Windows: running .exe нельзя перезаписать → отдельный detached PowerShell
-     скрипт ждёт завершения процесса, меняет файл и перезапускает игру.
-  7. Linux: AppImage меняется атомарным os.replace + chmod +x.
+Guarantees:
+  1. The manifest is verified with the embedded Ed25519 public key before use.
+  2. Each asset needs an HTTPS URL, a SHA-256 checksum, a size and an Ed25519
+     signature over the downloaded bytes.
+  3. Downloads go to *.part with streaming SHA-256 and a size limit.
+  4. Target paths are checked: saves/, config/ and mods/ are never written.
+  5. Zip extraction rejects traversal, absolute paths and protected folders.
+  6. A backup is made before replacement, with rollback on failure.
+  7. Windows uses a detached PowerShell helper because a running .exe cannot
+     be overwritten; Linux replaces the AppImage with os.replace and chmod.
 
-Сейвы/конфиги/моды физически лежат вне обновляемого бинарника и никогда
-не попадают в архив обновления — isolation by design.
+User data lives next to the binary and is never part of an update archive.
 """
 
 from __future__ import annotations
 
 import asyncio
 import hashlib
+import hmac
 import logging
 import os
 import platform
@@ -34,6 +35,7 @@ from typing import Awaitable, Callable
 
 import aiohttp
 
+from ..release_key import verify_bytes, verify_manifest
 from ..version import __version__, version_tuple
 from .paths import PROTECTED_DIRS, UPDATES_DIR, is_frozen
 
@@ -58,21 +60,26 @@ class Asset:
     sha256: str
     filename: str
     size: int = 0
-    archive_format: str | None = None  # None = готовый бинарник, "zip" = архив
+    archive_format: str | None = None  # None = plain binary, "zip" = archive
+    signature: str | None = None  # base64 Ed25519 signature over file bytes
 
     @classmethod
     def parse(cls, raw: object) -> "Asset":
         if not isinstance(raw, dict):
-            raise ValueError("asset должен быть объектом")
-        url = str(raw["url"])
-        if not url.startswith(("https://", "http://")):
-            raise ValueError(f"небезопасный URL: {url!r}")
+            raise ValueError("asset must be a JSON object")
+        url = str(raw.get("url", ""))
+        if not url.startswith("https://"):
+            raise ValueError(f"asset URL must use HTTPS: {url!r}")
+        sha256 = str(raw.get("sha256", "")).lower()
+        if len(sha256) != 64 or any(char not in "0123456789abcdef" for char in sha256):
+            raise ValueError("asset is missing a valid sha256 checksum")
         return cls(
             url=url,
-            sha256=str(raw.get("sha256", "")).lower(),
+            sha256=sha256,
             filename=str(raw.get("filename") or Path(url).name),
             size=int(raw.get("size", 0)),
             archive_format=raw.get("archive_format"),
+            signature=raw.get("signature"),
         )
 
 
@@ -88,16 +95,15 @@ class ReleaseInfo:
 
     @classmethod
     def parse(cls, raw: object) -> "ReleaseInfo":
-        if not isinstance(raw, dict):
-            raise ValueError(" manifest обновления должен быть объектом")
-        version = str(raw["version"])
-        if not version_tuple(version):
-            raise ValueError(f"некорректная версия: {version!r}")
-        assets = {key: Asset.parse(value) for key, value in dict(raw.get("assets", {})).items()}
+        payload = verify_manifest(raw)
+        version = str(payload.get("version", ""))
+        if not version or not version_tuple(version):
+            raise ValueError(f"invalid version: {version!r}")
+        assets = {key: Asset.parse(value) for key, value in dict(payload.get("assets", {})).items()}
         return cls(
             version=version,
-            notes=str(raw.get("notes", "")),
-            published_at=str(raw.get("published_at", "")),
+            notes=str(payload.get("notes", "")),
+            published_at=str(payload.get("published_at", "")),
             assets=assets,
         )
 
@@ -112,6 +118,8 @@ class UpdateResult:
 
 class UpdateChecker:
     def __init__(self, manifest_url: str, timeout: int = 10, cache_ttl: float = 300) -> None:
+        if not manifest_url.startswith("https://"):
+            raise ValueError(f"manifest URL must use HTTPS: {manifest_url!r}")
         self.manifest_url = manifest_url
         self.timeout = timeout
         self.cache_ttl = cache_ttl
@@ -213,16 +221,17 @@ class UpdateInstaller:
             raise RuntimeError("пустой ответ сервера")
 
     def _verify(self, part: Path, asset: Asset) -> None:
-        if asset.size and part.stat().st_size != asset.size:
-            raise RuntimeError(f"размер не совпадает: {part.stat().st_size} != {asset.size}")
-        if asset.sha256:
-            checksum = hashlib.sha256()
-            with part.open("rb") as stream:
-                for block in iter(lambda: stream.read(1024 * 1024), b""):
-                    checksum.update(block)
-            if checksum.hexdigest() != asset.sha256:
-                raise RuntimeError("SHA-256 не совпадает — обновление отклонено")
-        # TODO(security): подпись ElGamal/GPG release-ключа: verify_signature(part, sig_url)
+        """Check size, checksum and the Ed25519 signature of a downloaded asset."""
+        actual_size = part.stat().st_size
+        if asset.size and actual_size != asset.size:
+            raise ValueError(f"size mismatch: {actual_size} != {asset.size}")
+        data = part.read_bytes()
+        checksum = hashlib.sha256(data).hexdigest()
+        if not hmac.compare_digest(checksum, asset.sha256):
+            raise ValueError("SHA-256 mismatch: update rejected")
+        if not asset.signature:
+            raise ValueError(f"asset {asset.filename!r} is missing an Ed25519 signature")
+        verify_bytes(data, asset.signature)
 
     def _extract_binary(self, archive: Path, asset: Asset) -> Path:
         """Безопасная распаковка: без `..`, без абсолютных путей, без protected-дир."""

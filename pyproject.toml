@@ -1,8 +1,17 @@
 [project]
 name = "hackmeskay"
 version = "0.1.1"
-description = "hackmeskay — кроссплатформенная текстовая хакерская MMO в терминале"
+description = "Cross-platform terminal game set in a fictional mesh network"
+readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = ">=3.11"
+keywords = ["terminal", "tui", "game", "network"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 dependencies = [
     "rich>=13.7",
     "prompt_toolkit>=3.0.47",
@@ -10,6 +19,10 @@ dependencies = [
     "cryptography>=42.0",
     "colorama>=0.4.6; sys_platform == 'win32'",
 ]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+build = ["pyinstaller>=6.0"]
 
 [project.scripts]
 hackmeskay = "hackmeskay.__main__:main"
@@ -21,5 +34,11 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools.package-data]
-hackmeskay = ["../data/**/*"]
+[tool.setuptools.data-files]
+"share/hackmeskay/data/campaign" = ["data/campaign/*.json"]
+"share/hackmeskay/data/wiki" = ["data/wiki/*.md"]
+"share/hackmeskay/data/wiki/en" = ["data/wiki/en/*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]

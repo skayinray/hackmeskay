@@ -1,0 +1,23 @@
+{
+  "_comment": "Template only. Fill in version/notes/urls, then run tools/sign_update.py with RELEASE_SIGNING_KEY to create a signed update.json. The signature covers every field except 'signature'. Each asset signature covers the downloaded file bytes.",
+  "version": "0.1.2",
+  "published_at": "2026-11-21T00:00:00Z",
+  "notes": "Example notes for the next release.",
+  "assets": {
+    "windows": {
+      "url": "https://github.com/skayinray/hackmeskay/releases/download/v0.1.2/hackmeskay.exe",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "filename": "hackmeskay.exe",
+      "size": 0,
+      "signature": "BASE64_ED25519_SIGNATURE_OVER_FILE_BYTES"
+    },
+    "linux": {
+      "url": "https://github.com/skayinray/hackmeskay/releases/download/v0.1.2/hackmeskay-x86_64.AppImage",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "filename": "hackmeskay-x86_64.AppImage",
+      "size": 0,
+      "signature": "BASE64_ED25519_SIGNATURE_OVER_FILE_BYTES"
+    }
+  },
+  "signature": "BASE64_ED25519_SIGNATURE_OVER_CANONICAL_MANIFEST"
+}

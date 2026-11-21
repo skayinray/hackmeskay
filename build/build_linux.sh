@@ -7,7 +7,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 PY="${PYTHON:-$ROOT/.venv/bin/python}"
-[ -x "$PY" ] || PY="python3"
+if [ ! -x "$PY" ] && ! command -v "$PY" >/dev/null 2>&1; then
+  PY="python3"
+fi
 "$PY" -m pip install -q -r requirements.txt
 "$PY" -m PyInstaller --noconfirm --clean --onefile --console \
   --name hackmeskay --paths src --add-data "data:data" \

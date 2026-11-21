@@ -1,8 +1,12 @@
-"""In-game база знаний: загружается из data/wiki/*.md, ищет по заголовкам и тексту."""
+"""In-game knowledge base loaded from data/wiki/*.md.
+
+Russian pages are the base set. English pages live in data/wiki/en/ and
+override them when the language setting starts with "en". Missing English
+pages fall back to the Russian text.
+"""
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 from ..core.paths import DATA_DIR
@@ -20,25 +24,51 @@ ALIASES = {
     "старт": "getting-started",
 }
 
+EN_ALIASES = {
+    "command": "commands",
+    "vulnerability": "vulnerabilities",
+    "mod": "mods",
+    "getting-started": "getting-started",
+    "getting started": "getting-started",
+    "quick start": "getting-started",
+    "network": "network",
+    "сеть": "network",
+    "empire": "empire",
+    "империя": "empire",
+    "rules": "commands",
+}
+
 
 class WikiService:
-    def __init__(self, wiki_dir: Path | None = None) -> None:
+    def __init__(self, wiki_dir: Path | None = None, language: str = "ru") -> None:
         self.wiki_dir = wiki_dir or (DATA_DIR / "wiki")
+        self.language = "en" if language.lower().startswith("en") else "ru"
         self._cache: dict[str, str] | None = None
 
     def _articles(self) -> dict[str, str]:
         if self._cache is None:
-            self._cache = {}
+            articles: dict[str, str] = {}
             if self.wiki_dir.is_dir():
                 for path in sorted(self.wiki_dir.glob("*.md")):
-                    self._cache[path.stem] = path.read_text(encoding="utf-8")
+                    articles[path.stem] = path.read_text(encoding="utf-8")
+            if self.language == "en":
+                english_dir = self.wiki_dir / "en"
+                if english_dir.is_dir():
+                    for path in sorted(english_dir.glob("*.md")):
+                        articles[path.stem] = path.read_text(encoding="utf-8")
+            self._cache = articles
         return self._cache
 
     def index(self) -> str:
         articles = self._articles()
-        lines = ["[bold cyan]БАЗА ЗНАНИЙ hackmeskay[/bold cyan]", "Доступные статьи:", ""]
-        lines += [f"  wiki {name:<18} {self._title(text)}" for name, text in articles.items()]
-        lines += ["", "[dim]Поиск: wiki <слово>. Пример: wiki уязвимости[/dim]"]
+        if self.language == "en":
+            lines = ["[bold cyan]hackmeskay KNOWLEDGE BASE[/bold cyan]", "Available articles:", ""]
+            lines += [f"  wiki {name:<18} {self._title(text)}" for name, text in articles.items()]
+            lines += ["", "[dim]Search: wiki <word>. Example: wiki vulnerabilities[/dim]"]
+        else:
+            lines = ["[bold cyan]БАЗА ЗНАНИЙ hackmeskay[/bold cyan]", "Доступные статьи:", ""]
+            lines += [f"  wiki {name:<18} {self._title(text)}" for name, text in articles.items()]
+            lines += ["", "[dim]Поиск: wiki <слово>. Пример: wiki уязвимости[/dim]"]
         return "\n".join(lines)
 
     @staticmethod
@@ -46,14 +76,15 @@ class WikiService:
         for line in text.splitlines():
             if line.startswith("# "):
                 return line[2:].strip()
-        return "(без заголовка)"
+        return "(no title)"
 
     async def article(self, query: str) -> str:
         articles = self._articles()
-        key = ALIASES.get(query.lower().strip(), query.lower().strip())
+        needle = query.lower().strip()
+        aliases = {**ALIASES, **EN_ALIASES} if self.language == "en" else ALIASES
+        key = aliases.get(needle, needle)
         if key in articles:
             return articles[key]
-        needle = query.lower().strip()
         if needle:
             hits = [
                 (name, text)
@@ -62,6 +93,9 @@ class WikiService:
             ]
             if hits:
                 name, text = hits[0]
-                return f"[dim]найдено: {name}[/dim]\n{text}"
+                prefix = "[dim]found: " if self.language == "en" else "[dim]найдено: "
+                return f"{prefix}{name}[/dim]\n{text}"
+            if self.language == "en":
+                return f"article not found: {query}\n\n{self.index()}"
             return f"статья не найдена: {query}\n\n{self.index()}"
         return self.index()

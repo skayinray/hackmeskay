@@ -5,8 +5,9 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
-py -m pip install -r requirements.txt
-py -m PyInstaller `
+$py = if ($env:PYTHON) { $env:PYTHON } else { 'py' }
+& $py -m pip install -r requirements.txt
+& $py -m PyInstaller `
   --noconfirm --clean --onefile --console `
   --name hackmeskay `
   --paths src `

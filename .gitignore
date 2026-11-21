@@ -18,7 +18,8 @@ build/AppDir/
 build/hackmeskay/
 dist/
 dist-win/
-tools/
+tools/appimagetool.AppImage
+tools/squashfs-root/
 *.AppImage
 *.exe
 
